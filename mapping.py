@@ -127,6 +127,7 @@ class Level:
                     print(cell.face, end='')
             print("|")
         print("-" + "-" * len(self.tiles[0]) + "-")
+        print('\t PLAYER: {}'.format(player.name), '\t HP: {}'.format(player.hp), '\t WEAPON: {}'.format(player.weapon), '\t LOCATION: ({}, {})'.format(player.loc()[0], player.loc()[1]))
 
     def is_walkable(self, location: Location):
         """Check if a player can walk through a given location."""
@@ -153,8 +154,13 @@ class Level:
 
     def loc(self, xy: Location) -> Tile:
         """Get the tile type at a give location."""
-        j, i = xy
-        return self.tiles[i][j]
+        try:
+            j, i = xy
+            if i <0:
+                i = 0
+            return self.tiles[i][j]
+        except IndexError:
+            pass
 
     def get_items(self, xy: Location) -> list[items.Item]:
         """Get a list of all items at a given location. Removes the items from that location."""
@@ -173,14 +179,21 @@ class Level:
             self.tiles[i][j] = AIR
 
     def is_free(self, xy: Location) -> bool:
-        """Check if a given location is free of other entities."""
-        if xy == AIR:
-            return True
-        raise NotImplementedError #no tenes que comparar las coordenadas, sino el elemento en el lugar de esas coordenadas
-        #fijate q tal vez no la necesitas revisar bien codigo
+        "Check if a given location is free."
+        j, i = xy
+        return self.tiles[i][j] is AIR
+
+    #def is_consecutive(self, initial: Location, end: Location) -> bool:
+        
 
     def are_connected(self, initial: Location, end: Location) -> bool:
         """Check if there is walkable path between initial location and end location."""
+
+        if initial(0) == self.rows or initial(1) == self.columns:
+            return self.render(player, gnome)
+            #It should return a function that remakes the map, and then it should call the function
+
+
         right = (initial(0)+1, initial(1))
         left = (initial(0) -1, initial(1))
         up = (initial(0), initial(1) -1)
@@ -198,8 +211,9 @@ class Level:
 
     def get_path(self, initial: Location, end: Location) -> bool:
         """Return a sequence of locations between initial location and end location, if it exits."""
-        # completar
-        raise NotImplementedError
+        if self.are_connected(initial, end) == True:
+            return [initial, end]
+            #COMPLETAR
 
 #%%
 class Dungeon:
@@ -243,6 +257,9 @@ class Dungeon:
 
     def get_stairs_up(self, index):
         return self.stairs_up[index]
+    
+    def get_stairs_down(self, index):
+        return self.stairs_down[index]
 
     def find_free_tile(self) -> Location:
         """Randomly searches for a free location inside the level's map.
