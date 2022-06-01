@@ -6,7 +6,7 @@ import msvcrt
 
 import random
 from human import Human
-from items import Item
+from items import Item, PickAxe, Sword, Amulet
 from gnome import Gnome
 import actions
 from keys import read_single_keypress
@@ -36,17 +36,31 @@ if __name__ == "__main__":
     dungeon = mapping.Dungeon(ROWS, COLUMNS, 3)
     # Agregarle cosas al dungeon, cosas que no se creen automáticamente al crearlo (por ejemplo, ya se crearon las escaleras).
 
+    pick = PickAxe('pickaxe', '(')
+    dungeon.add_item(pick, 1)
+
+    sword = Sword('sword', '/', 10, 50)
+    dungeon.add_item(sword, 2 )
+
     turns = 0
+
     while dungeon.level >= 0:
         turns += 1
         # render map
+        
+        
         dungeon.render(player, gnome)
         
         # get player input
         key = read_single_keypress() 
-
+        if key == 'q':
+            print("Thanks for playing! See you next time :)")
+            break
         # move player
         actions.move_to(dungeon, player, player.loc(), key)
+        actions.climb_stair(dungeon, player, player.loc(), key)
+        actions.descend_stair(dungeon, player, player.loc(), key)
+        actions.pickup(dungeon, player, player.loc(), key)
 
 
     # Salió del loop principal, termina el juego

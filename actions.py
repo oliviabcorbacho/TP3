@@ -34,12 +34,6 @@ def move_to(dungeon: mapping.Dungeon, player: player.Player, location: tuple[num
         elif key =='a':
             move_left(dungeon, player, x, y)
 
-        elif key == ' ':
-            if dungeon.loc((x,y)).get_face() == '>':
-                descend_stair(dungeon, player)
-            elif dungeon.loc((x,y)).get_face() == '<':
-                climb_stair(dungeon, player)
-
     except AttributeError:
         pass
 
@@ -58,22 +52,43 @@ def move_right(dungeon: mapping.Dungeon, player: player.Player, x, y):
                 player.move_to((x+1,y))
 
 
-def climb_stair(dungeon: mapping.Dungeon, player: player.Player):
-    dungeon.level += 1
-    player.loc = dungeon.get_stairs_down(dungeon.level) #completar
-
-
-def descend_stair(dungeon: mapping.Dungeon, player: player.Player):
-
-    dungeon.level -= 1
-    player.loc = dungeon.get_stairs_up(dungeon.level) #completar
-    
-
-def pickup(dungeon: mapping.Dungeon, player: player.Player, location: tuple[numeric, numeric]):
+def climb_stair(dungeon: mapping.Dungeon, player: player.Player, location, key):
     x, y = location
-    if dungeon.loc((x, y)) == '/':
-        player.weapon = '/'
-        dungeon.loc((x, y)).set_face(' ')
+    try:
+        if key == ' ' and dungeon.loc((x, y)).get_face() == '<':
+            dungeon.level -= 1
+            player.loc = dungeon.get_stairs_down(dungeon.level) #completar
+    except AttributeError:
+        pass
+
+def descend_stair(dungeon: mapping.Dungeon, player: player.Player, location, key):
+    x, y = location
+    try: 
+        if key == ' ' and dungeon.loc((x, y)).get_face() == '>':
+            dungeon.level += 1
+            player.loc = dungeon.get_stairs_up(dungeon.level)
+    except AttributeError:
+        pass
+     #completar
     
-    #elif dungeon.loc((x, y)) == 
-    raise NotImplementedError
+
+def pickup(dungeon: mapping.Dungeon, player: player.Player, location, key):
+    x, y = location
+    try:
+        if key == 'p':
+            if dungeon.loc((x, y)).get_face() == '/':  
+                player.weapon = '/'
+                dungeon.loc((x, y)).set_face(' ')
+            
+            elif dungeon.loc((x, y)).get_face() == '(':
+                player.weapon = '('
+                dungeon.loc((x, y)).set_face(' ')
+
+            elif dungeon.loc((x, y)).get_face() == '"':
+                player.weapon = '"'
+                player.loc((x, y)).set_face(' ') 
+    except AttributeError:
+        pass
+
+#elif dungeon.loc((x, y)) == 
+

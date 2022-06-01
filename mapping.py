@@ -112,14 +112,14 @@ class Level:
         location, and a face attribute. All items in the map must have a face attribute which is going to be shown. If
         there are multiple items in one location, only one will be rendered.
         """
-        # completar (cuando se agregue el gnomo)
+        
         print("-" + "-" * len(self.tiles[0]) + "-")
         for i, row in enumerate(self.tiles):
             print("|", end="")
             for j, cell in enumerate(row):
                 if (j, i) == player.loc():
                     print(player.face, end='')
-                elif (j, i) == gnome.loc():
+                elif (j, i) == gnome.loc() : #and if gnome.alive() == True:
                     print(gnome.face, end='')
                 elif (i, j) in self.items:
                     print(self.items[(i, j)][0].face, end='')
