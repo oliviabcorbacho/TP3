@@ -4,6 +4,7 @@ from typing import Optional
 
 import player
 import items
+import foods
 import gnome
 
 
@@ -62,6 +63,7 @@ class Level:
         self.tiles = tiles
         self.rows, self.columns = rows, columns
         self.items = {}
+        self.visited = []
 
     def find_free_tile(self) -> Location:
         """Randomly searches for a free location inside the level's map.
@@ -112,7 +114,18 @@ class Level:
         location, and a face attribute. All items in the map must have a face attribute which is going to be shown. If
         there are multiple items in one location, only one will be rendered.
         """
-        
+        '''for loc, [item] in self.items.items():
+            if item.name == "pickaxe":
+                loc_pickaxe = loc
+                if not (self.are_connected(loc_pickaxe, player.loc())):
+                    print("no conectado")
+                    while not self.are_connected(loc_pickaxe, player.loc()):
+                        loc_pickaxe = self.find_free_tile()
+                        print('finding tile')
+                    self.add_item(item, loc_pickaxe)
+                    del self.items[loc]
+                break'''
+                
         print("-" + "-" * len(self.tiles[0]) + "-")
         for i, row in enumerate(self.tiles):
             print("|", end="")
@@ -176,6 +189,16 @@ class Level:
             items = []
         return items
 
+    def eat_foods(self, xy: Location) -> list[foods.Foods]:
+        j, i = xy
+        if (i, j) in self.foods:
+            foods = self.foods[(i, j)]
+            del(self.foods[(i, j)])
+        else:
+            foods = []
+        return foods
+
+
     def dig(self, xy: Location) -> None:
         """Replace a WALL at the given location, by AIR."""
         j, i = xy
@@ -189,29 +212,35 @@ class Level:
 
     #def is_consecutive(self, initial: Location, end: Location) -> bool:
         
-
     def are_connected(self, initial: Location, end: Location) -> bool:
         """Check if there is walkable path between initial location and end location."""
-
-        if initial(0) == self.rows or initial(1) == self.columns:
-            return self.render(player, gnome)
-            #It should return a function that remakes the map, and then it should call the function
-
-
-        right = (initial(0)+1, initial(1))
-        left = (initial(0) -1, initial(1))
-        up = (initial(0), initial(1) -1)
-        down = (initial(0), initial(1)+1)
-        positions_list = [right, left, up, down]
-
-        if right == end or left == end or up == end or down == end:
+        
+        if initial == end:
             return True
-        self.key_connections(positions_list)
+        
+        if 0 <= initial[0] <= self.rows and 0 <= initial[1] <= self.columns and self.is_walkable(initial) and initial not in self.visited:
 
-    def key_connections(self, l:list) :
-        for position in l:
-            if self.is_walkable(position) == True:
-                return self.are_connected(position)
+            self.visited.append(initial)
+            x, y = initial
+            
+            consecutives= ((x, y-1), (x+1, y), (x, y+1), (x-1, y))
+            for position in consecutives:
+                if self.are_connected(position, end):
+                    return True
+        return False
+
+        '''if initial[0] > n and if self.is_walkable(        ) if initial in visited;
+        return False
+        visited.append(initial)
+        x,y = initial
+        consecutivos = (x+1,y)
+        for consec in consecutivos:
+            if are_connected(consecutivo,end):
+                return True
+        return False
+        connected = False #this will indicate whether the initial and final location are connected or not
+        visited''' 
+
 
     def get_path(self, initial: Location, end: Location) -> bool:
         """Return a sequence of locations between initial location and end location, if it exits."""

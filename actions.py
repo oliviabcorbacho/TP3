@@ -4,6 +4,7 @@ from typing import Union
 import mapping
 import player
 import gnome
+import foods
 from human import Human
 
 
@@ -103,7 +104,6 @@ def pickup(dungeon: mapping.Dungeon, player: player.Player, key, items_picked_up
         if key == 'p':
 
             my_items = dungeon.get_items(player.loc())
-            print(my_items)
             for item in my_items:
                 items_picked_up.append(item)
                 player.weapon = item
@@ -111,4 +111,16 @@ def pickup(dungeon: mapping.Dungeon, player: player.Player, key, items_picked_up
     except AttributeError:
         pass
 
+def raise_hp(dungeon: mapping.Dungeon, player: player.Player, key):
 
+    try:
+        if key == 'e':
+            dungeon.eat_foods(player.loc())
+            if player.hp + 10 <= player.max_hp:
+                player.hp += 10
+            else:
+                player.hp = player.max_hp
+            
+                
+    except AttributeError:
+        pass

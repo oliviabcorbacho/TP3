@@ -45,6 +45,7 @@ if __name__ == "__main__":
     items_picked_up = []
     turns = 0
 
+ 
     while dungeon.level >= 0:
         turns += 1
         # render map
@@ -64,10 +65,12 @@ if __name__ == "__main__":
         actions.descend_stair(dungeon, player, player.loc(), key)
         actions.pickup(dungeon, player, key, items_picked_up)
         actions.attack(dungeon, player, gnome, items_picked_up)
+        print()
+        
+        
 
         if player.hp <=0:
             print("Uh, oh! You died! Better luck next time!")
-            break
 
 
     # Salió del loop principal, termina el juego
