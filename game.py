@@ -27,8 +27,8 @@ if __name__ == "__main__":
 
     #initial_location = mapping.Dungeon.find_free_tile()
     #(random.randint(1, ROWS), random.randint(1, COLUMNS))
- 
-    player = Human('P', (20, 22) )
+    name = input("What is your name? ")
+    player = Human(name, (20, 22) )
 
     # initial locations may be random generated
     gnome = Gnome("G", (10,21))
@@ -40,8 +40,9 @@ if __name__ == "__main__":
     dungeon.add_item(pick, 1)
 
     sword = Sword('sword', '/', 10, 50)
-    dungeon.add_item(sword, 2 )
+    dungeon.add_item(sword, 1)
 
+    items_picked_up = []
     turns = 0
 
     while dungeon.level >= 0:
@@ -56,11 +57,17 @@ if __name__ == "__main__":
         if key == 'q':
             print("Thanks for playing! See you next time :)")
             break
+
         # move player
-        actions.move_to(dungeon, player, player.loc(), key)
+        actions.move_to(dungeon, player, player.loc(), key, items_picked_up)
         actions.climb_stair(dungeon, player, player.loc(), key)
         actions.descend_stair(dungeon, player, player.loc(), key)
-        actions.pickup(dungeon, player, player.loc(), key)
+        actions.pickup(dungeon, player, key, items_picked_up)
+        actions.attack(dungeon, player, gnome, items_picked_up)
+
+        if player.hp <=0:
+            print("Uh, oh! You died! Better luck next time!")
+            break
 
 
     # Salió del loop principal, termina el juego

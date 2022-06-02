@@ -4,6 +4,7 @@ from typing import Union
 import mapping
 import player
 import gnome
+from human import Human
 
 
 numeric = Union[int, float]
@@ -16,40 +17,65 @@ def clip(value: numeric, minimum: numeric, maximum: numeric) -> numeric:
         return maximum
     return value
 
+#Hay que hacer que el jugador no pase del primer nivel sin juntar primero el pico
 
-def attack(dungeon, player, gnome): #esto va a hacer que el gnome ataque al player
-    
-    raise NotImplementedError
+def attack(dungeon: mapping.Dungeon, player: player.Player, gnome: gnome.Gnome, items_picked_up ): #esto va a hacer que el gnome ataque al player
+    try: 
+        if player.loc() == gnome.loc() and len(items_picked_up) >=2:
+            gnome.hp -= player.damage()
+            if gnome.hp <= 0:
+                gnome.kill()
+            print(gnome.hp)
+        elif player.loc() == gnome.loc() and len(items_picked_up) < 2:
+            player.hp -= gnome.damage()   
+
+    except NotImplementedError:
+        pass
 
 
-def move_to(dungeon: mapping.Dungeon, player: player.Player, location: tuple[numeric, numeric], key:str):
+def move_to(dungeon: mapping.Dungeon, player: player.Player, location: tuple[numeric, numeric], key:str, items_picked_up):
     x,y = location
     try: 
         if key =='w':
-            move_up(dungeon, player, x, y)
+            move_up(dungeon, player, x, y, items_picked_up)
         elif key == 's':
-            move_down(dungeon, player, x, y)
+            move_down(dungeon, player, x, y, items_picked_up)
         elif key == 'd':
-            move_right(dungeon, player, x, y)
+            move_right(dungeon, player, x, y, items_picked_up)
         elif key =='a':
-            move_left(dungeon, player, x, y)
+            move_left(dungeon, player, x, y, items_picked_up)
 
     except AttributeError:
         pass
 
 
-def move_up(dungeon: mapping.Dungeon, player: player.Player, x, y):
+def move_up(dungeon: mapping.Dungeon, player: player.Player, x, y, items_picked_up):
     if dungeon.loc((x,y-1)).is_walkable() and y-1 >=0:
                 player.move_to((x,y-1))
-def move_down(dungeon: mapping.Dungeon, player: player.Player, x, y):
+    elif len(items_picked_up) !=0 and y-1 >=0:
+        player.move_to((x, y-1))
+        dungeon.dig(player.loc())
+
+def move_down(dungeon: mapping.Dungeon, player: player.Player, x, y, items_picked_up):
     if dungeon.loc((x,y+1)).is_walkable() and y +1 <= dungeon.rows:
                 player.move_to((x,y+1))
-def move_left(dungeon: mapping.Dungeon, player: player.Player, x, y):
+    elif len(items_picked_up) != 0 and y+1 >=0:
+        player.move_to((x, y+1))
+        dungeon.dig(player.loc())
+
+def move_left(dungeon: mapping.Dungeon, player: player.Player, x, y, items_picked_up):
     if dungeon.loc((x-1,y)).is_walkable() and x-1 >= 0:
                 player.move_to((x-1,y))
-def move_right(dungeon: mapping.Dungeon, player: player.Player, x, y):
+    elif len(items_picked_up) != 0 and x-1 >=0:
+        player.move_to((x-1,y))
+        dungeon.dig(player.loc())
+
+def move_right(dungeon: mapping.Dungeon, player: player.Player, x, y, items_picked_up):
     if dungeon.loc((x+1,y)).is_walkable() and x+1 <= dungeon.columns:
                 player.move_to((x+1,y))
+    elif len(items_picked_up) !=0 and x+1 >=0:
+        player.move_to((x+1, y))
+        dungeon.dig(player.loc())
 
 
 def climb_stair(dungeon: mapping.Dungeon, player: player.Player, location, key):
@@ -72,23 +98,17 @@ def descend_stair(dungeon: mapping.Dungeon, player: player.Player, location, key
      #completar
     
 
-def pickup(dungeon: mapping.Dungeon, player: player.Player, location, key):
-    x, y = location
+def pickup(dungeon: mapping.Dungeon, player: player.Player, key, items_picked_up):
     try:
         if key == 'p':
-            if dungeon.loc((x, y)).get_face() == '/':  
-                player.weapon = '/'
-                dungeon.loc((x, y)).set_face(' ')
-            
-            elif dungeon.loc((x, y)).get_face() == '(':
-                player.weapon = '('
-                dungeon.loc((x, y)).set_face(' ')
 
-            elif dungeon.loc((x, y)).get_face() == '"':
-                player.weapon = '"'
-                player.loc((x, y)).set_face(' ') 
+            my_items = dungeon.get_items(player.loc())
+            print(my_items)
+            for item in my_items:
+                items_picked_up.append(item)
+                player.weapon = item
+            
     except AttributeError:
         pass
 
-#elif dungeon.loc((x, y)) == 
 

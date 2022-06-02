@@ -119,15 +119,19 @@ class Level:
             for j, cell in enumerate(row):
                 if (j, i) == player.loc():
                     print(player.face, end='')
-                elif (j, i) == gnome.loc() : #and if gnome.alive() == True:
-                    print(gnome.face, end='')
+                elif (j, i) == gnome.loc(): 
+                    if (gnome.hp > 0):
+                        print(gnome.face, end='')
                 elif (i, j) in self.items:
                     print(self.items[(i, j)][0].face, end='')
                 else:
                     print(cell.face, end='')
             print("|")
         print("-" + "-" * len(self.tiles[0]) + "-")
-        print('\t PLAYER: {}'.format(player.name), '\t HP: {}'.format(player.hp), '\t WEAPON: {}'.format(player.weapon), '\t LOCATION: ({}, {})'.format(player.loc()[0], player.loc()[1]))
+        print('PLAYER: {}'.format(player.name), '\t HP: {}'.format(player.hp), '\t WEAPON: {}'.format(player.weapon), '\t LOCATION: ({}, {})'.format(player.loc()[0], player.loc()[1]))
+        print(f"Collect the weapons to reach the treassure! Your enemy is the gnome and has {gnome.hp} hit points.")
+        if player.hp <= 10:
+            print("WARNING!!! Your hit points are low. BE CAREFUL!!!")
 
     def is_walkable(self, location: Location):
         """Check if a player can walk through a given location."""
