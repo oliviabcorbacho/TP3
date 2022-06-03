@@ -1,6 +1,8 @@
 #from curses import keyname
 import random
 from typing import Optional 
+import sys 
+sys.setrecursionlimit(10000)
 
 import player
 import items
@@ -28,6 +30,10 @@ class Tile:
     def is_walkable(self) -> bool:
         """Returns True if the tile is walkable, False otherwise."""
         return self.walkable
+    
+    def get_face(self) -> str:
+        """Returns the face of the tile."""
+        return self.face
 
 
 AIR = Tile(' ')
@@ -97,7 +103,7 @@ class Level:
         self.tiles[i][j] = STAIR_DOWN
 
 
-    def add_item(self, item: items.Item, location: Optional[Location] = None):
+    def add_item(self, player: player.Player, item: items.Item, location: Optional[Location] = None):
         """Add an item to a given location in the map. If no location is given, one free space is randomly searched.
         This method might never if the probability of finding a free space is low.
         """
@@ -105,27 +111,25 @@ class Level:
             j, i = self.find_free_tile()
         else:
             j, i = location
+
+        position = (i, j)
+        connected = False
+        while not connected:
+            if self.are_connected(player.loc(), position):
+                connected = True
+            else:
+                j, i = self.find_free_tile()
+                position = (i, j)
+
         items = self.items.get((i, j), [])
         items.append(item)
         self.items[(i, j)] = items
 
-    def render(self, player: player.Player, gnome: gnome.Gnome):
+    def render(self, player: player.Player, gnome: gnome.Gnome, current_level:int, gnome2: gnome.Gnome):
         """Draw the map onto the terminal, including player and items. Player must have a loc() method, returning its
         location, and a face attribute. All items in the map must have a face attribute which is going to be shown. If
         there are multiple items in one location, only one will be rendered.
-        """
-        '''for loc, [item] in self.items.items():
-            if item.name == "pickaxe":
-                loc_pickaxe = loc
-                if not (self.are_connected(loc_pickaxe, player.loc())):
-                    print("no conectado")
-                    while not self.are_connected(loc_pickaxe, player.loc()):
-                        loc_pickaxe = self.find_free_tile()
-                        print('finding tile')
-                    self.add_item(item, loc_pickaxe)
-                    del self.items[loc]
-                break'''
-                
+        """                
         print("-" + "-" * len(self.tiles[0]) + "-")
         for i, row in enumerate(self.tiles):
             print("|", end="")
@@ -135,6 +139,10 @@ class Level:
                 elif (j, i) == gnome.loc(): 
                     if (gnome.hp > 0):
                         print(gnome.face, end='')
+                    #The second gnome is only meant to be in level 2, for higher dificulty.
+                elif current_level == 2 and (j, i) == gnome2.loc():
+                    if (gnome2.hp > 0):
+                        print(gnome2.face, end='')
                 elif (i, j) in self.items:
                     print(self.items[(i, j)][0].face, end='')
                 else:
@@ -189,13 +197,15 @@ class Level:
             items = []
         return items
 
-    def eat_foods(self, xy: Location) -> list[foods.Foods]:
+    def eat_foods(self, xy: Location) -> list:
+        """Get a list of all food items at a given location. Removes the items from that location."""
         j, i = xy
-        if (i, j) in self.foods:
-            foods = self.foods[(i, j)]
-            del(self.foods[(i, j)])
+        if (i, j) in self.items:
+            foods = self.items[(i, j)]
+            del(self.items[(i, j)])
         else:
             foods = []
+        print("You ate the food! You gain 10 HP!")
         return foods
 
 
@@ -210,8 +220,7 @@ class Level:
         j, i = xy
         return self.tiles[i][j] is AIR
 
-    #def is_consecutive(self, initial: Location, end: Location) -> bool:
-        
+
     def are_connected(self, initial: Location, end: Location) -> bool:
         """Check if there is walkable path between initial location and end location."""
         
@@ -229,24 +238,6 @@ class Level:
                     return True
         return False
 
-        '''if initial[0] > n and if self.is_walkable(        ) if initial in visited;
-        return False
-        visited.append(initial)
-        x,y = initial
-        consecutivos = (x+1,y)
-        for consec in consecutivos:
-            if are_connected(consecutivo,end):
-                return True
-        return False
-        connected = False #this will indicate whether the initial and final location are connected or not
-        visited''' 
-
-
-    def get_path(self, initial: Location, end: Location) -> bool:
-        """Return a sequence of locations between initial location and end location, if it exits."""
-        if self.are_connected(initial, end) == True:
-            return [initial, end]
-            #COMPLETAR
 
 #%%
 class Dungeon:
@@ -281,12 +272,13 @@ class Dungeon:
         # Ubicar escalera del nivel inferior
         self.dungeon[-1].add_stair_up(self.stairs_up[-1])
 
-    def render(self, player: player.Player, gnome: gnome.Gnome):
+    def render(self, player: player.Player, gnome: gnome.Gnome, gnome2: gnome.Gnome):
         """Draw current level onto the terminal, including player and items. Player must have a loc() method, returning
         its location, and a face attribute. All items in the map must have a face attribute which is going to be shown.
         If there are multiple items in one location, only one will be rendered.
         """
-        self.dungeon[self.level].render(player, gnome)
+        current_level = self.level
+        self.dungeon[self.level].render(player, gnome, current_level, gnome2)
 
     def get_stairs_up(self, index):
         return self.stairs_up[index]
@@ -305,14 +297,14 @@ class Dungeon:
         """Check if a player can walk through a given location. See Level.is_walkable()."""
         return self.dungeon[self.level].is_walkable(tile)
 
-    def add_item(self, item: items.Item, level: Optional[int] = None, xy: Optional[Location] = None):
+    def add_item(self, player: player.Player, item: items.Item, level: Optional[int] = None, xy: Optional[Location] = None):
         """Add an item to a given location in the map of a given or current level. If no location is given, one free
         space is randomly searched. This method might never if the probability of finding a free space is low.
         """
         if level is None:
             level = self.level + 1
         if 0 < level <= len(self.dungeon):
-            self.dungeon[level - 1].add_item(item, xy)
+            self.dungeon[level - 1].add_item(player, item, xy)
 
     def loc(self, xy: Location) -> Tile:
         """Get the tile type at a give location."""
@@ -336,4 +328,27 @@ class Dungeon:
         """NOT IMPLEMENTED. Check if a given location is free of other entities. See Level.is_free()."""
         return self.dungeon[self.level].is_free(xy)
 
+    def get_rows(self) -> int:
+        """Get the number of rows of the map."""
+        return self.rows
+    
+    def get_columns(self) -> int:
+        """Get the number of columns of the map."""
+        return self.columns
+    
+    def get_level(self) -> int:
+        """Get the current level."""
+        return self.level
+    
+    def descend_level(self) -> None:
+        """Descend to the next level."""
+        if not self.level == 2:
+            self.level += 1
+            print(f'You are currently on level {self.level}')
+    
+    def climb_level(self) -> None:
+        """Climb to the previous level."""
+        if not self.level == 0:
+            self.level -= 1
+            print(f'You are currently on level {self.level}')
 

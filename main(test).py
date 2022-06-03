@@ -18,3 +18,16 @@ if __name__ == '__main__':
 
     print(player.hp)
     
+#%%
+items_picked_up = [' item pickaxe', 'hope']
+
+if "pickaxe" in items_picked_up:
+    print('yes')
+else:
+    print('not')
+# %%
+import pygame as pg
+
+# %%
+from colorama import Fore, Back, Style
+print(Fore.RED + "Some red text")

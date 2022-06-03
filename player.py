@@ -40,9 +40,6 @@ class Player:
         self.hp = 0
         self.alive = False
 
-    def has_sword(self):
-  #      self.weapon = "/" #it has sword
-        pass
 
     def _damage(self, dmg):
         if self.weapon:

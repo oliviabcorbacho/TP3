@@ -33,3 +33,6 @@ class PickAxe(Item):
     def __init__(self, name: str, fc: str):
         super().__init__(name, fc, 'tool')
 
+class Food(Item):
+    def __init__(self, name: str, fc: str):
+        super().__init__(name, fc, 'food')
